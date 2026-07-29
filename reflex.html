@@ -9,15 +9,21 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2290%22%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Reflex Check">
+<link rel="manifest" href="/reflex-manifest.json">
 <meta property="og:title" content="Reflex Check — a 30-second break">
 <meta property="og:description" content="How fast can you react? A quick reaction-time test for your office break.">
 <meta property="og:type" content="website">
-<meta name="twitter:card" content="summary">
+<meta property="og:image" content="/reflex-og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/reflex-og-image.png">
 <style>
   :root {
     --ink: #1B2430; --ink-2: #242E3D; --paper: #F4EDE0; --paper-dim: #C9C2B3;
     --yellow: #D9A441; --green: #4C8C5D; --slate: #3A4453; --red: #B5544A;
   }
+  body.cbmode { --green: #3A7CA5; --red: #E0975A; }
   * { box-sizing: border-box; }
   body {
     margin: 0; min-height: 100vh; background: var(--ink); color: var(--paper);
@@ -131,6 +137,7 @@
 
   <a class="back-link" href="/" aria-label="Back to Deskle">←</a>
   <div class="topbar">
+    <button class="icon-btn" id="cbBtn" aria-label="Toggle colorblind-friendly colors" aria-pressed="false" title="Colorblind-friendly mode">◐</button>
     <button class="icon-btn" id="helpBtn" aria-label="How to play">?</button>
   </div>
 
