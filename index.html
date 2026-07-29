@@ -341,6 +341,11 @@
 </style>
 </head>
 <body>
+<noscript>
+  <div style="background:#D9A441; color:#1B2430; padding:16px; text-align:center; font-family: 'Courier New', monospace; font-weight:700;">
+    Deskle needs JavaScript enabled to play. Please enable it and reload the page.
+  </div>
+</noscript>
 
   <div class="topbar">
     <button class="icon-btn" id="cbBtn" aria-label="Toggle colorblind-friendly colors" title="Colorblind-friendly mode">◐</button>
@@ -367,9 +372,9 @@
   <div class="picker" id="picker" role="main">
     <p>Pick your break length:</p>
     <div class="picker-opts">
-      <button class="picker-btn" data-len="3"><span class="num">3</span><span class="lab">Quick</span></button>
-      <button class="picker-btn" data-len="4"><span class="num">4</span><span class="lab">Standard</span></button>
-      <button class="picker-btn" data-len="5"><span class="num">5</span><span class="lab">Classic</span></button>
+      <button class="picker-btn" data-len="3" aria-label="3 letters, quick"><span class="num">3</span><span class="lab">Quick</span></button>
+      <button class="picker-btn" data-len="4" aria-label="4 letters, standard"><span class="num">4</span><span class="lab">Standard</span></button>
+      <button class="picker-btn" data-len="5" aria-label="5 letters, classic"><span class="num">5</span><span class="lab">Classic</span></button>
     </div>
     <button class="hardmode-toggle" id="hardModeToggle" aria-pressed="false">Hard mode: off</button>
   </div>
