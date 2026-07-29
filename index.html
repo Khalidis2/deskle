@@ -28,11 +28,13 @@
     --yellow: #D9A441;
     --green: #4C8C5D;
     --slate: #3A4453;
+    --correct: var(--green);
+    --present: var(--yellow);
   }
 
   body.cbmode {
-    --yellow: #E0975A;
-    --green: #3A7CA5;
+    --correct: #3A7CA5;
+    --present: #E0975A;
   }
 
   * { box-sizing: border-box; }
@@ -198,8 +200,8 @@
   }
   .tile.flip { animation: tileflip 0.4s ease; }
 
-  .tile.correct { background: var(--green); border-color: var(--green); color: var(--ink); }
-  .tile.present { background: var(--yellow); border-color: var(--yellow); color: var(--ink); }
+  .tile.correct { background: var(--correct); border-color: var(--correct); color: var(--ink); }
+  .tile.present { background: var(--present); border-color: var(--present); color: var(--ink); }
   .tile.absent { background: var(--slate); border-color: var(--slate); color: var(--paper-dim); }
 
   .keyboard {
@@ -230,8 +232,8 @@
   .key:hover { background: var(--slate); }
   .key.wide { max-width: 66px; font-size: 10px; }
 
-  .key.correct { background: var(--green); color: var(--ink); border-color: var(--green); }
-  .key.present { background: var(--yellow); color: var(--ink); border-color: var(--yellow); }
+  .key.correct { background: var(--correct); color: var(--ink); border-color: var(--correct); }
+  .key.present { background: var(--present); color: var(--ink); border-color: var(--present); }
   .key.absent { background: #262F3B; color: #5b6472; border-color: #262F3B; }
 
   .msg {
@@ -369,8 +371,8 @@
     <div class="modal">
       <h3>How to clock in</h3>
       <p>Pick a word length, then guess the word in 6 tries. Everyone gets the same word today for that length.</p>
-      <div class="legend"><div class="swatch" style="background:var(--green)"></div> Right letter, right spot</div>
-      <div class="legend"><div class="swatch" style="background:var(--yellow)"></div> Right letter, wrong spot</div>
+      <div class="legend"><div class="swatch" style="background:var(--correct)"></div> Right letter, right spot</div>
+      <div class="legend"><div class="swatch" style="background:var(--present)"></div> Right letter, wrong spot</div>
       <div class="legend"><div class="swatch" style="background:var(--slate)"></div> Not in the word</div>
       <p style="margin-top:14px;">Turn on Hard mode on the start screen if you want every revealed hint to be required in later guesses.</p>
       <button class="modal-close" id="closeHelp">Got it</button>
