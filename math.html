@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Quick Math — a 60-second break</title>
+<meta name="description" content="Quick Math: how many arithmetic problems can you solve in 60 seconds? A fast mental-math sprint for your office break.">
+<meta name="theme-color" content="#1B2430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2290%22%3E%F0%9F%94%A2%3C/text%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Quick Math">
+<link rel="manifest" href="/math-manifest.json">
+<meta property="og:title" content="Quick Math — a 60-second break">
+<meta property="og:description" content="How many arithmetic problems can you solve in 60 seconds? A fast mental-math sprint.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="/math-og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="/math-og-image.png">
+<style>
+  :root {
+    --ink: #1B2430; --ink-2: #242E3D; --paper: #F4EDE0; --paper-dim: #C9C2B3;
+    --yellow: #D9A441; --green: #4C8C5D; --slate: #3A4453; --red: #B5544A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--ink); color: var(--paper);
+    font-family: 'Courier New', ui-monospace, monospace;
+    display: flex; flex-direction: column; align-items: center;
+    padding: calc(24px + env(safe-area-inset-top)) 16px calc(48px + env(safe-area-inset-bottom));
+  }
+  .topbar { position: fixed; top: calc(16px + env(safe-area-inset-top)); right: calc(16px + env(safe-area-inset-right)); display: flex; gap: 8px; }
+  .icon-btn {
+    background: transparent; border: 1px solid var(--slate); color: var(--paper-dim);
+    width: 32px; height: 32px; border-radius: 50%; font-family: Georgia, serif;
+    font-size: 14px; cursor: pointer;
+  }
+  .icon-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+  .back-link {
+    position: fixed; top: calc(16px + env(safe-area-inset-top)); left: calc(16px + env(safe-area-inset-left));
+    color: var(--paper-dim); text-decoration: none; font-size: 13px; border: 1px solid var(--slate);
+    border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  }
+  .back-link:hover { border-color: var(--yellow); color: var(--yellow); }
+
+  .stamp {
+    border: 2px solid var(--yellow); color: var(--yellow); padding: 4px 14px; font-size: 11px;
+    letter-spacing: 3px; text-transform: uppercase; border-radius: 2px; margin-bottom: 18px; transform: rotate(-1deg);
+  }
+  h1 {
+    font-family: Georgia, 'Times New Roman', serif; font-weight: 900; letter-spacing: -0.3px;
+    font-size: 42px; margin: 0 0 4px; text-transform: uppercase;
+  }
+  .tagline { color: var(--paper-dim); font-size: 13px; letter-spacing: 1px; margin-bottom: 20px; text-align: center; }
+
+  .hud { display: flex; gap: 28px; margin-bottom: 24px; }
+  .hud-item { text-align: center; }
+  .hud-item .num { display: block; font-size: 28px; font-weight: 700; color: var(--yellow); font-family: Georgia, serif; }
+  .hud-item .lab { font-size: 11px; letter-spacing: 1px; color: var(--paper-dim); }
+
+  .start-screen { text-align: center; }
+  .start-btn {
+    background: var(--yellow); color: var(--ink); border: none; padding: 16px 36px;
+    font-family: inherit; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    font-size: 14px; cursor: pointer; border-radius: 4px; margin-top: 16px;
+  }
+  .start-btn:hover { opacity: 0.9; }
+
+  .problem-box {
+    font-size: 40px; font-weight: 700; font-family: Georgia, serif; margin: 20px 0 28px;
+    text-align: center; min-height: 56px;
+  }
+  .answers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; max-width: 360px; }
+  .answer-btn {
+    background: var(--ink-2); border: 2px solid var(--slate); color: var(--paper);
+    font-family: inherit; font-size: 22px; font-weight: 700; padding: 18px 0;
+    cursor: pointer; border-radius: 4px; transition: all 0.15s ease;
+  }
+  .answer-btn:hover { border-color: var(--yellow); }
+  .answer-btn.correct { background: var(--green); border-color: var(--green); color: var(--ink); }
+  .answer-btn.wrong { background: var(--red); border-color: var(--red); color: var(--ink); }
+  .answer-num { font-size: 11px; color: var(--paper-dim); display: block; margin-bottom: 4px; }
+  .answer-btn.correct .answer-num, .answer-btn.wrong .answer-num { color: rgba(27,36,48,0.6); }
+
+  .result {
+    margin-top: 24px; border: 2px solid var(--yellow); padding: 18px 24px;
+    text-align: center; max-width: 360px; display: none;
+  }
+  .result.show { display: block; }
+  .result h2 { font-family: Georgia, serif; color: var(--yellow); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .result p { font-size: 13px; color: var(--paper-dim); margin: 4px 0; line-height: 1.6; }
+  .result-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .copy-btn, .again-btn {
+    background: var(--yellow); color: var(--ink); border: none; padding: 10px 20px;
+    font-family: inherit; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    font-size: 12px; cursor: pointer; border-radius: 3px;
+  }
+  .again-btn { background: transparent; border: 2px solid var(--yellow); color: var(--yellow); }
+  .copy-btn:hover, .again-btn:hover { opacity: 0.85; }
+
+  .best-score {
+    margin-top: 28px; font-size: 12px; letter-spacing: 1px; color: var(--paper-dim);
+    border-top: 1px dashed var(--slate); padding-top: 16px; width: 100%; max-width: 380px; text-align: center;
+  }
+  .best-score .num { color: var(--yellow); font-weight: 700; }
+
+  .hidden { display: none !important; }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--ink-2); border: 2px solid var(--yellow); max-width: 320px; padding: 24px; color: var(--paper);
+  }
+  .modal h3 { font-family: Georgia, serif; color: var(--yellow); text-transform: uppercase; margin-top: 0; }
+  .modal p { font-size: 13px; line-height: 1.6; color: var(--paper-dim); }
+  .modal-close {
+    margin-top: 10px; background: var(--yellow); color: var(--ink); border: none; padding: 8px 18px;
+    font-family: inherit; font-weight: 700; text-transform: uppercase; font-size: 12px; cursor: pointer; border-radius: 3px;
+  }
+
+  button:focus-visible { outline: 2px solid var(--yellow); outline-offset: 2px; }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; }
+  }
+  @media (min-width: 900px) {
+    h1 { font-size: 52px; }
+    .answers { max-width: 420px; }
+    .problem-box { font-size: 48px; }
+  }
+  @media (max-width: 380px) {
+    h1 { font-size: 34px; }
+    .problem-box { font-size: 32px; }
+  }
+</style>
+</head>
+<body>
+<noscript>
+  <div style="background:#D9A441; color:#1B2430; padding:16px; text-align:center; font-weight:700;">
+    Quick Math needs JavaScript enabled to play. Please enable it and reload the page.
+  </div>
+</noscript>
+
+  <a class="back-link" href="/" aria-label="Back to Deskle">←</a>
+  <div class="topbar">
+    <button class="icon-btn" id="helpBtn" aria-label="How to play">?</button>
+  </div>
+
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal">
+      <h3>How it works</h3>
+      <p>Solve as many arithmetic problems as you can in 60 seconds. Pick the correct answer from the 4 choices — you can also press 1, 2, 3, or 4 on your keyboard to answer fast.</p>
+      <button class="modal-close" id="closeHelp">Got it</button>
+    </div>
+  </div>
+
+  <div class="stamp">clocked in</div>
+  <h1>Quick Math</h1>
+  <div class="tagline">60 seconds, as many as you can. no calculator.</div>
+
+  <div class="hud hidden" id="hud">
+    <div class="hud-item"><span class="num" id="scoreDisplay">0</span><span class="lab">SCORE</span></div>
+    <div class="hud-item"><span class="num" id="timeDisplay">60</span><span class="lab">SECONDS</span></div>
+  </div>
+
+  <div class="start-screen" id="startScreen">
+    <button class="start-btn" id="startBtn">Start 60-second sprint</button>
+  </div>
+
+  <div id="gameArea" class="hidden">
+    <div class="problem-box" id="problemBox" aria-live="polite"></div>
+    <div class="answers" id="answers"></div>
+  </div>
+
+  <div class="result" id="result" aria-live="polite" role="status">
+    <h2 id="resultTitle">Time's up</h2>
+    <p id="resultSub"></p>
+    <div class="result-actions">
+      <button class="copy-btn" id="copyBtn">Copy result</button>
+      <button class="again-btn" id="againBtn">Play again</button>
+    </div>
+  </div>
+
+  <div class="best-score" id="bestScoreDisplay"></div>
+
+  <footer style="margin-top:32px; text-align:center; color:var(--paper-dim); font-size:11px; letter-spacing:1px;">
+    part of the same 5-minute break family as <a href="/" style="color:var(--yellow);">Deskle</a> and <a href="/reflex.html" style="color:var(--yellow);">Reflex Check</a>
+    <div style="margin-top:12px;">
+      <a href="/about.html" style="color:var(--paper-dim); margin:0 8px;">About</a>
+      <a href="/privacy.html" style="color:var(--paper-dim); margin:0 8px;">Privacy</a>
+      <a href="/contact.html" style="color:var(--paper-dim); margin:0 8px;">Contact</a>
+    </div>
+  </footer>
+
+<script>
+(function(){
+  const TIME_LIMIT = 60;
+  const STATS_KEY = 'quickmath_stats_v1';
+
+  let score = 0;
+  let attempted = 0;
+  let timeLeft = TIME_LIMIT;
+  let timerInterval = null;
+  let currentCorrectIndex = -1;
+  let running = false;
+
+  const hud = document.getElementById('hud');
+  const startScreen = document.getElementById('startScreen');
+  const gameArea = document.getElementById('gameArea');
+  const resultEl = document.getElementById('result');
+  const problemBox = document.getElementById('problemBox');
+  const answersEl = document.getElementById('answers');
+  const scoreDisplay = document.getElementById('scoreDisplay');
+  const timeDisplay = document.getElementById('timeDisplay');
+  const bestScoreDisplay = document.getElementById('bestScoreDisplay');
+
+  function loadBest() {
+    try {
+      const raw = localStorage.getItem(STATS_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) { return null; }
+  }
+  function saveBest(stats) {
+    try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch (e) {}
+  }
+  function renderBest() {
+    const stats = loadBest();
+    if (!stats || !stats.bestScore) {
+      bestScoreDisplay.textContent = 'No sprints yet — play a round to set your first score';
+      return;
+    }
+    bestScoreDisplay.innerHTML = 'Your best score: <span class="num">' + stats.bestScore + '</span> · Sprints played: <span class="num">' + stats.sprints + '</span>';
+  }
+
+  function randInt(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  // Generates a problem object: { text, correctAnswer, options: [4 numbers with correctAnswer among them] }
+  function generateProblem() {
+    const ops = ['+', '-', '\u00D7'];
+    const op = ops[randInt(0, 2)];
+    let a, b, correctAnswer, text;
+    if (op === '+') {
+      a = randInt(2, 50); b = randInt(2, 50);
+      correctAnswer = a + b;
+      text = a + ' + ' + b;
+    } else if (op === '-') {
+      a = randInt(10, 60); b = randInt(1, a); // ensure non-negative result
+      correctAnswer = a - b;
+      text = a + ' \u2212 ' + b;
+    } else {
+      a = randInt(2, 12); b = randInt(2, 12);
+      correctAnswer = a * b;
+      text = a + ' \u00D7 ' + b;
+    }
+
+    const options = new Set([correctAnswer]);
+    while (options.size < 4) {
+      const offset = randInt(-8, 8);
+      const distractor = correctAnswer + (offset === 0 ? (Math.random() < 0.5 ? -1 : 1) : offset);
+      if (distractor >= 0 && !options.has(distractor)) options.add(distractor);
+    }
+    const optionsArr = Array.from(options);
+    // shuffle
+    for (let i = optionsArr.length - 1; i > 0; i--) {
+      const j = randInt(0, i);
+      [optionsArr[i], optionsArr[j]] = [optionsArr[j], optionsArr[i]];
+    }
+    const correctIndex = optionsArr.indexOf(correctAnswer);
+    return { text, options: optionsArr, correctIndex };
+  }
+
+  function renderProblem() {
+    const problem = generateProblem();
+    currentCorrectIndex = problem.correctIndex;
+    problemBox.textContent = problem.text;
+    answersEl.innerHTML = '';
+    problem.options.forEach((opt, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      btn.innerHTML = '<span class="answer-num">' + (i+1) + '</span>' + opt;
+      btn.dataset.index = i;
+      btn.onclick = () => handleAnswer(i, btn);
+      answersEl.appendChild(btn);
+    });
+  }
+
+  function handleAnswer(index, btnEl) {
+    if (!running) return;
+    attempted += 1;
+    const isCorrect = index === currentCorrectIndex;
+    if (isCorrect) {
+      score += 1;
+      scoreDisplay.textContent = score;
+      if (btnEl) btnEl.classList.add('correct');
+    } else {
+      if (btnEl) btnEl.classList.add('wrong');
+    }
+    setTimeout(() => { if (running) renderProblem(); }, 150);
+  }
+
+  function tick() {
+    timeLeft -= 1;
+    timeDisplay.textContent = timeLeft;
+    if (timeLeft <= 0) endSprint();
+  }
+
+  function startSprint() {
+    score = 0; attempted = 0; timeLeft = TIME_LIMIT; running = true;
+    scoreDisplay.textContent = '0';
+    timeDisplay.textContent = TIME_LIMIT;
+    startScreen.classList.add('hidden');
+    resultEl.classList.remove('show');
+    hud.classList.remove('hidden');
+    gameArea.classList.remove('hidden');
+    renderProblem();
+    clearInterval(timerInterval);
+    timerInterval = setInterval(tick, 1000);
+  }
+
+  function endSprint() {
+    running = false;
+    clearInterval(timerInterval);
+    gameArea.classList.add('hidden');
+    hud.classList.add('hidden');
+
+    const stats = loadBest() || { bestScore: 0, sprints: 0 };
+    stats.sprints += 1;
+    if (score > stats.bestScore) stats.bestScore = score;
+    saveBest(stats);
+    renderBest();
+
+    const accuracy = attempted > 0 ? Math.round((score / attempted) * 100) : 0;
+    document.getElementById('resultSub').textContent = 'Score: ' + score + ' correct out of ' + attempted + ' attempted (' + accuracy + '% accuracy)';
+    resultEl.classList.add('show');
+  }
+
+  document.getElementById('startBtn').onclick = startSprint;
+  document.getElementById('againBtn').onclick = startSprint;
+
+  document.getElementById('copyBtn').onclick = () => {
+    const text = 'Quick Math: ' + score + ' correct in 60 seconds';
+    function fallbackCopy(t) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+      } catch (e) {}
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  };
+
+  document.addEventListener('keydown', (e) => {
+    if (!running) return;
+    if (['1','2','3','4'].includes(e.key)) {
+      const idx = parseInt(e.key, 10) - 1;
+      const btn = answersEl.querySelector('[data-index="' + idx + '"]');
+      if (btn) handleAnswer(idx, btn);
+    }
+  });
+
+  const helpModal = document.getElementById('helpModal');
+  document.getElementById('helpBtn').onclick = () => { helpModal.classList.add('show'); };
+  function closeHelp() { helpModal.classList.remove('show'); }
+  document.getElementById('closeHelp').onclick = closeHelp;
+  helpModal.onclick = (e) => { if (e.target === helpModal) closeHelp(); };
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeHelp(); });
+
+  renderBest();
+})();
+</script>
+
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
+</body>
+</html>
