@@ -50,6 +50,7 @@
   }
 
   .topbar { position: fixed; top: calc(16px + env(safe-area-inset-top)); right: calc(16px + env(safe-area-inset-right)); display: flex; gap: 8px; }
+  .back-btn { position: fixed; top: calc(16px + env(safe-area-inset-top)); left: calc(16px + env(safe-area-inset-left)); }
   .icon-btn {
     background: transparent;
     border: 1px solid var(--slate);
@@ -62,6 +63,11 @@
     cursor: pointer;
   }
   .icon-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+  .icon-btn[aria-pressed="true"] {
+    background: var(--yellow);
+    border-color: var(--yellow);
+    color: var(--ink);
+  }
 
   .stamp {
     border: 2px solid var(--yellow);
@@ -352,8 +358,10 @@
   </div>
 </noscript>
 
+  <button class="icon-btn back-btn hidden" id="backBtn" aria-label="Back to break length picker" title="Back">←</button>
+
   <div class="topbar">
-    <button class="icon-btn" id="cbBtn" aria-label="Toggle colorblind-friendly colors" title="Colorblind-friendly mode">◐</button>
+    <button class="icon-btn" id="cbBtn" aria-label="Toggle colorblind-friendly colors" aria-pressed="false" title="Colorblind-friendly mode">◐</button>
     <button class="icon-btn" id="helpBtn" aria-label="How to play">?</button>
   </div>
 
@@ -440,6 +448,7 @@
   const clockLine = document.getElementById('clockLine');
   const picker = document.getElementById('picker');
   const gameWrap = document.getElementById('gameWrap');
+  const backBtn = document.getElementById('backBtn');
 
   function absoluteDayNumber() {
     const startUTC = Date.UTC(2026, 0, 1);
@@ -464,6 +473,7 @@
 
     picker.classList.add('hidden');
     gameWrap.classList.remove('hidden');
+    backBtn.classList.remove('hidden');
     resultEl.classList.remove('show');
     msgEl.textContent = '';
 
@@ -714,11 +724,15 @@
     }
   }
 
-  document.getElementById('againBtn').onclick = () => {
+  function returnToPicker() {
     clearInterval(timerInterval);
     gameWrap.classList.add('hidden');
+    backBtn.classList.add('hidden');
     picker.classList.remove('hidden');
-  };
+  }
+
+  document.getElementById('againBtn').onclick = returnToPicker;
+  backBtn.onclick = returnToPicker;
 
   document.querySelectorAll('.picker-btn').forEach(btn => {
     btn.onclick = () => startGame(parseInt(btn.dataset.len, 10));
@@ -745,18 +759,21 @@
     helpModal.classList.add('show');
     picker.setAttribute('inert', '');
     gameWrap.setAttribute('inert', '');
+    backBtn.setAttribute('inert', '');
   }
   function closeHelp() {
     helpModal.classList.remove('show');
     picker.removeAttribute('inert');
     gameWrap.removeAttribute('inert');
+    backBtn.removeAttribute('inert');
   }
   document.getElementById('helpBtn').onclick = openHelp;
   document.getElementById('closeHelp').onclick = closeHelp;
   helpModal.onclick = (e) => { if (e.target === helpModal) closeHelp(); };
 
-  document.getElementById('cbBtn').onclick = () => {
+  document.getElementById('cbBtn').onclick = (e) => {
     document.body.classList.toggle('cbmode');
+    e.currentTarget.setAttribute('aria-pressed', document.body.classList.contains('cbmode') ? 'true' : 'false');
   };
 
   const hardModeBtn = document.getElementById('hardModeToggle');
