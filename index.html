@@ -117,6 +117,25 @@
   }
   .picker-opts { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
 
+  .mode-select {
+    display: flex;
+    border: 1px solid var(--slate);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 22px;
+  }
+  .mode-btn {
+    background: var(--ink-2);
+    border: none;
+    color: var(--paper-dim);
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 10px 18px;
+    cursor: pointer;
+  }
+  .mode-btn.active { background: var(--yellow); color: var(--ink); font-weight: 700; }
+
   .hardmode-toggle {
     margin-top: 22px;
     background: transparent;
@@ -385,6 +404,10 @@
   <div class="tagline" id="puzzleNum" style="margin-top:-14px; font-size:11px; letter-spacing:2px;"></div>
 
   <div class="picker" id="picker" role="main">
+    <div class="mode-select" id="modeSelect">
+      <button class="mode-btn active" data-mode="daily" aria-pressed="true">Today's puzzle</button>
+      <button class="mode-btn" data-mode="practice" aria-pressed="false">Practice (random)</button>
+    </div>
     <p>Pick your break length:</p>
     <div class="picker-opts">
       <button class="picker-btn" data-len="3" aria-label="3 letters, quick"><span class="num">3</span><span class="lab">Quick</span></button>
@@ -406,6 +429,7 @@
       <div class="grid-share" id="shareGrid"></div>
       <div class="result-actions">
         <button class="copy-btn" id="copyBtn">Copy result</button>
+        <button class="again-btn hidden" id="playAgainBtn">Play again</button>
         <button class="again-btn" id="againBtn">Try another length</button>
       </div>
     </div>
@@ -439,6 +463,8 @@
   let ANSWER = "";
   let VALID_GUESSES = null;
   let hardMode = false;
+  let practiceMode = false;
+  let lastPracticeAnswer = {};
   let knownCorrect = [];
   let knownPresent = new Set();
   const keyState = {};
@@ -463,9 +489,19 @@
     return ((diff % poolLen) + poolLen) % poolLen;
   }
 
+  function pickPracticeAnswer(len) {
+    const pool = ANSWERS[len];
+    let choice;
+    do {
+      choice = pool[Math.floor(Math.random() * pool.length)];
+    } while (pool.length > 1 && choice === lastPracticeAnswer[len]);
+    lastPracticeAnswer[len] = choice;
+    return choice;
+  }
+
   function startGame(len) {
     COLS = len;
-    ANSWER = ANSWERS[len][dayIndex(ANSWERS[len].length)];
+    ANSWER = practiceMode ? pickPracticeAnswer(len) : ANSWERS[len][dayIndex(ANSWERS[len].length)];
     VALID_GUESSES = DICTS[len];
     currentRow = 0; currentCol = 0; finished = false; animating = false;
     knownCorrect = Array(len).fill(null);
@@ -478,6 +514,8 @@
     backBtn.classList.remove('hidden');
     resultEl.classList.remove('show');
     msgEl.textContent = '';
+
+    document.getElementById('puzzleNum').textContent = practiceMode ? 'PRACTICE MODE' : 'PUZZLE #' + absoluteDayNumber();
 
     buildBoard();
     buildKeyboard();
@@ -694,11 +732,13 @@
       grid.push(line);
     }
     document.getElementById('shareGrid').textContent = grid.join(String.fromCharCode(10));
+    document.getElementById('playAgainBtn').classList.toggle('hidden', !practiceMode);
   }
 
   document.getElementById('copyBtn').onclick = () => {
     const won = document.getElementById('resultTitle').textContent === 'Clocked out early';
-    const text = `Deskle #${absoluteDayNumber()} (${COLS}-letter) ${won ? '✅' : '❌'}` + String.fromCharCode(10) + document.getElementById('shareGrid').textContent;
+    const label = practiceMode ? 'Practice' : `#${absoluteDayNumber()}`;
+    const text = `Deskle ${label} (${COLS}-letter) ${won ? '✅' : '❌'}` + String.fromCharCode(10) + document.getElementById('shareGrid').textContent;
     if (navigator.clipboard && navigator.clipboard.writeText) {
       navigator.clipboard.writeText(text).then(
         () => showMsg('Copied to clipboard'),
@@ -734,6 +774,7 @@
   }
 
   document.getElementById('againBtn').onclick = returnToPicker;
+  document.getElementById('playAgainBtn').onclick = () => startGame(COLS);
   backBtn.onclick = returnToPicker;
 
   document.querySelectorAll('.picker-btn').forEach(btn => {
@@ -784,6 +825,17 @@
     hardModeBtn.setAttribute('aria-pressed', String(hardMode));
     hardModeBtn.textContent = hardMode ? 'Hard mode: on' : 'Hard mode: off';
   };
+
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.onclick = () => {
+      practiceMode = btn.dataset.mode === 'practice';
+      document.querySelectorAll('.mode-btn').forEach(b => {
+        const isActive = b === btn;
+        b.classList.toggle('active', isActive);
+        b.setAttribute('aria-pressed', String(isActive));
+      });
+    };
+  });
 
   document.getElementById('puzzleNum').textContent = 'PUZZLE #' + absoluteDayNumber();
 })();
