@@ -103,6 +103,25 @@
     max-width: 320px;
   }
   .picker-opts { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+
+  .hardmode-toggle {
+    margin-top: 22px;
+    background: transparent;
+    border: 1px solid var(--slate);
+    color: var(--paper-dim);
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 1px;
+    padding: 8px 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .hardmode-toggle[aria-pressed="true"] {
+    border-color: var(--yellow);
+    color: var(--yellow);
+    background: rgba(217, 164, 65, 0.1);
+  }
   .picker-btn {
     background: var(--ink-2);
     border: 2px solid var(--slate);
@@ -335,6 +354,7 @@
       <div class="legend"><div class="swatch" style="background:var(--green)"></div> Right letter, right spot</div>
       <div class="legend"><div class="swatch" style="background:var(--yellow)"></div> Right letter, wrong spot</div>
       <div class="legend"><div class="swatch" style="background:var(--slate)"></div> Not in the word</div>
+      <p style="margin-top:14px;">Turn on Hard mode on the start screen if you want every revealed hint to be required in later guesses.</p>
       <button class="modal-close" id="closeHelp">Got it</button>
     </div>
   </div>
@@ -351,6 +371,7 @@
       <button class="picker-btn" data-len="4"><span class="num">4</span><span class="lab">Standard</span></button>
       <button class="picker-btn" data-len="5"><span class="num">5</span><span class="lab">Classic</span></button>
     </div>
+    <button class="hardmode-toggle" id="hardModeToggle" aria-pressed="false">Hard mode: off</button>
   </div>
 
   <div id="gameWrap" class="hidden" role="main">
@@ -397,6 +418,9 @@
   let timerInterval;
   let ANSWER = "";
   let VALID_GUESSES = null;
+  let hardMode = false;
+  let knownCorrect = [];
+  let knownPresent = new Set();
   const keyState = {};
 
   const boardEl = document.getElementById('board');
@@ -423,6 +447,8 @@
     ANSWER = ANSWERS[len][dayIndex(ANSWERS[len].length)];
     VALID_GUESSES = DICTS[len];
     currentRow = 0; currentCol = 0; finished = false; animating = false;
+    knownCorrect = Array(len).fill(null);
+    knownPresent = new Set();
     board = Array.from({length: ROWS}, () => Array(COLS).fill(""));
     startTime = Date.now();
 
@@ -525,6 +551,20 @@
     setTimeout(() => tile.classList.remove('pop'), 150);
   }
 
+  function hardModeViolation(guessArr) {
+    for (let i = 0; i < COLS; i++) {
+      if (knownCorrect[i] && guessArr[i] !== knownCorrect[i]) {
+        return `Position ${i+1} must be ${knownCorrect[i]}`;
+      }
+    }
+    for (const letter of knownPresent) {
+      if (!guessArr.includes(letter)) {
+        return `Guess must contain ${letter}`;
+      }
+    }
+    return null;
+  }
+
   function submitRow() {
     const guess = board[currentRow].join("");
 
@@ -534,6 +574,17 @@
       rowEl.classList.add('shake');
       setTimeout(() => rowEl.classList.remove('shake'), 400);
       return;
+    }
+
+    if (hardMode) {
+      const violation = hardModeViolation(guess.split(""));
+      if (violation) {
+        showMsg(violation);
+        const rowEl = document.getElementById('row-' + currentRow);
+        rowEl.classList.add('shake');
+        setTimeout(() => rowEl.classList.remove('shake'), 400);
+        return;
+      }
     }
 
     const answerArr = ANSWER.split("");
@@ -553,6 +604,13 @@
       if (counts[guessArr[i]] > 0) {
         result[i] = 'present';
         counts[guessArr[i]]--;
+      }
+    }
+
+    if (hardMode) {
+      for (let i = 0; i < COLS; i++) {
+        if (result[i] === 'correct') knownCorrect[i] = guessArr[i];
+        else if (result[i] === 'present') knownPresent.add(guessArr[i]);
       }
     }
 
@@ -689,6 +747,13 @@
 
   document.getElementById('cbBtn').onclick = () => {
     document.body.classList.toggle('cbmode');
+  };
+
+  const hardModeBtn = document.getElementById('hardModeToggle');
+  hardModeBtn.onclick = () => {
+    hardMode = !hardMode;
+    hardModeBtn.setAttribute('aria-pressed', String(hardMode));
+    hardModeBtn.textContent = hardMode ? 'Hard mode: on' : 'Hard mode: off';
   };
 
   document.getElementById('puzzleNum').textContent = 'PUZZLE #' + absoluteDayNumber();
