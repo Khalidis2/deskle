@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Reflex Check — a 30-second break</title>
+<meta name="description" content="Reflex Check: how fast can you react? A 30-second reaction-time test for your office break.">
+<meta name="theme-color" content="#1B2430">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%20100%20100%22%3E%3Ctext%20y%3D%22.9em%22%20font-size%3D%2290%22%3E%E2%9A%A1%3C/text%3E%3C/svg%3E">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Reflex Check">
+<meta property="og:title" content="Reflex Check — a 30-second break">
+<meta property="og:description" content="How fast can you react? A quick reaction-time test for your office break.">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<style>
+  :root {
+    --ink: #1B2430; --ink-2: #242E3D; --paper: #F4EDE0; --paper-dim: #C9C2B3;
+    --yellow: #D9A441; --green: #4C8C5D; --slate: #3A4453; --red: #B5544A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; background: var(--ink); color: var(--paper);
+    font-family: 'Courier New', ui-monospace, monospace;
+    display: flex; flex-direction: column; align-items: center;
+    padding: calc(24px + env(safe-area-inset-top)) 16px calc(48px + env(safe-area-inset-bottom));
+  }
+  .topbar { position: fixed; top: calc(16px + env(safe-area-inset-top)); right: calc(16px + env(safe-area-inset-right)); display: flex; gap: 8px; }
+  .icon-btn {
+    background: transparent; border: 1px solid var(--slate); color: var(--paper-dim);
+    width: 32px; height: 32px; border-radius: 50%; font-family: Georgia, serif;
+    font-size: 14px; cursor: pointer;
+  }
+  .icon-btn:hover { border-color: var(--yellow); color: var(--yellow); }
+  .back-link {
+    position: fixed; top: calc(16px + env(safe-area-inset-top)); left: calc(16px + env(safe-area-inset-left));
+    color: var(--paper-dim); text-decoration: none; font-size: 13px; border: 1px solid var(--slate);
+    border-radius: 50%; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
+  }
+  .back-link:hover { border-color: var(--yellow); color: var(--yellow); }
+
+  .stamp {
+    border: 2px solid var(--yellow); color: var(--yellow); padding: 4px 14px; font-size: 11px;
+    letter-spacing: 3px; text-transform: uppercase; border-radius: 2px; margin-bottom: 18px; transform: rotate(-1deg);
+  }
+  h1 {
+    font-family: Georgia, 'Times New Roman', serif; font-weight: 900; letter-spacing: -0.3px;
+    font-size: 42px; margin: 0 0 4px; text-transform: uppercase;
+  }
+  .tagline { color: var(--paper-dim); font-size: 13px; letter-spacing: 1px; margin-bottom: 24px; text-align: center; }
+
+  .stage {
+    width: 100%; max-width: 480px; height: 280px; border-radius: 6px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; user-select: none; text-align: center; padding: 20px;
+    transition: background 0.15s ease;
+    background: var(--ink-2); border: 2px solid var(--slate);
+  }
+  .stage.waiting { background: var(--ink-2); border-color: var(--red); }
+  .stage.go { background: var(--green); border-color: var(--green); }
+  .stage.toosoon { background: var(--red); border-color: var(--red); }
+  .stage .big { font-size: 28px; font-weight: 700; font-family: Georgia, serif; }
+  .stage.go .big, .stage.toosoon .big { color: var(--ink); }
+  .stage .small { font-size: 13px; color: var(--paper-dim); margin-top: 10px; }
+  .stage.go .small, .stage.toosoon .small { color: rgba(27,36,48,0.7); }
+
+  .round-info { margin-top: 20px; font-size: 12px; letter-spacing: 2px; color: var(--paper-dim); }
+
+  .result {
+    margin-top: 20px; border: 2px solid var(--yellow); padding: 18px 24px;
+    text-align: center; max-width: 360px; display: none;
+  }
+  .result.show { display: block; }
+  .result h2 { font-family: Georgia, serif; color: var(--yellow); margin: 0 0 8px; text-transform: uppercase; letter-spacing: 1px; }
+  .result p { font-size: 13px; color: var(--paper-dim); margin: 4px 0; line-height: 1.6; }
+  .times-list { font-size: 13px; margin: 12px 0; color: var(--paper); }
+  .result-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .copy-btn, .again-btn {
+    background: var(--yellow); color: var(--ink); border: none; padding: 10px 20px;
+    font-family: inherit; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+    font-size: 12px; cursor: pointer; border-radius: 3px;
+  }
+  .again-btn { background: transparent; border: 2px solid var(--yellow); color: var(--yellow); }
+  .copy-btn:hover, .again-btn:hover { opacity: 0.85; }
+
+  .best-time {
+    margin-top: 28px; font-size: 12px; letter-spacing: 1px; color: var(--paper-dim);
+    border-top: 1px dashed var(--slate); padding-top: 16px; width: 100%; max-width: 380px; text-align: center;
+  }
+  .best-time .num { color: var(--yellow); font-weight: 700; }
+
+  .hidden { display: none !important; }
+
+  .modal-overlay {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 10;
+    align-items: center; justify-content: center;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal {
+    background: var(--ink-2); border: 2px solid var(--yellow); max-width: 320px; padding: 24px; color: var(--paper);
+  }
+  .modal h3 { font-family: Georgia, serif; color: var(--yellow); text-transform: uppercase; margin-top: 0; }
+  .modal p { font-size: 13px; line-height: 1.6; color: var(--paper-dim); }
+  .modal-close {
+    margin-top: 10px; background: var(--yellow); color: var(--ink); border: none; padding: 8px 18px;
+    font-family: inherit; font-weight: 700; text-transform: uppercase; font-size: 12px; cursor: pointer; border-radius: 3px;
+  }
+
+  button:focus-visible, .stage:focus-visible {
+    outline: 2px solid var(--yellow); outline-offset: 2px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; }
+  }
+  @media (min-width: 900px) {
+    h1 { font-size: 52px; }
+    .stage { max-width: 560px; height: 320px; }
+  }
+  @media (max-width: 380px) {
+    h1 { font-size: 34px; }
+    .stage { height: 220px; }
+  }
+</style>
+</head>
+<body>
+<noscript>
+  <div style="background:#D9A441; color:#1B2430; padding:16px; text-align:center; font-weight:700;">
+    Reflex Check needs JavaScript enabled to play. Please enable it and reload the page.
+  </div>
+</noscript>
+
+  <a class="back-link" href="/" aria-label="Back to Deskle">←</a>
+  <div class="topbar">
+    <button class="icon-btn" id="helpBtn" aria-label="How to play">?</button>
+  </div>
+
+  <div class="modal-overlay" id="helpModal">
+    <div class="modal">
+      <h3>How it works</h3>
+      <p>Click the box to start. It'll show red while you wait — click too soon and you'll false-start. When it turns green, click as fast as you can. You'll play 5 rounds, then see your average.</p>
+      <button class="modal-close" id="closeHelp">Got it</button>
+    </div>
+  </div>
+
+  <div class="stamp">clocked in</div>
+  <h1>Reflex Check</h1>
+  <div class="tagline">how fast can you react? one round takes a few seconds.</div>
+
+  <div class="stage waiting" id="stage" tabindex="0" role="button" aria-label="Click to start reaction test">
+    <div class="big" id="stageText">Click to start</div>
+    <div class="small" id="stageSubtext">5 rounds, then your average</div>
+  </div>
+
+  <div class="round-info" id="roundInfo"></div>
+
+  <div class="result" id="result" aria-live="polite" role="status">
+    <h2 id="resultTitle">Session complete</h2>
+    <p id="resultSub"></p>
+    <div class="times-list" id="timesList"></div>
+    <div class="result-actions">
+      <button class="copy-btn" id="copyBtn">Copy result</button>
+      <button class="again-btn" id="againBtn">Play again</button>
+    </div>
+  </div>
+
+  <div class="best-time" id="bestTimeDisplay"></div>
+
+  <footer style="margin-top:32px; text-align:center; color:var(--paper-dim); font-size:11px; letter-spacing:1px;">
+    part of the same 5-minute break family as <a href="/" style="color:var(--yellow);">Deskle</a>
+    <div style="margin-top:12px;">
+      <a href="/about.html" style="color:var(--paper-dim); margin:0 8px;">About</a>
+      <a href="/privacy.html" style="color:var(--paper-dim); margin:0 8px;">Privacy</a>
+      <a href="/contact.html" style="color:var(--paper-dim); margin:0 8px;">Contact</a>
+    </div>
+  </footer>
+
+<script>
+(function(){
+  const ROUNDS_PER_SESSION = 5;
+  const MIN_DELAY = 1200;
+  const MAX_DELAY = 4000;
+
+  const stage = document.getElementById('stage');
+  const stageText = document.getElementById('stageText');
+  const stageSubtext = document.getElementById('stageSubtext');
+  const roundInfo = document.getElementById('roundInfo');
+  const resultEl = document.getElementById('result');
+  const bestTimeDisplay = document.getElementById('bestTimeDisplay');
+
+  let state = 'idle'; // idle | waiting | go | toosoon | done
+  let timeoutId = null;
+  let goStartTime = 0;
+  let times = [];
+  let round = 0;
+  let falseStarts = 0;
+
+  const STATS_KEY = 'reflexcheck_stats_v1';
+
+  function loadBest() {
+    try {
+      const raw = localStorage.getItem(STATS_KEY);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (e) { return null; }
+  }
+  function saveBest(stats) {
+    try { localStorage.setItem(STATS_KEY, JSON.stringify(stats)); } catch (e) {}
+  }
+
+  function renderBest() {
+    const stats = loadBest();
+    if (!stats || !stats.bestAvg) {
+      bestTimeDisplay.textContent = 'No sessions yet — play a round to set your first time';
+      return;
+    }
+    bestTimeDisplay.innerHTML = 'Your best average: <span class="num">' + stats.bestAvg + 'ms</span> · Sessions played: <span class="num">' + stats.sessions + '</span>';
+  }
+
+  function updateRoundInfo() {
+    if (round === 0) { roundInfo.textContent = ''; return; }
+    roundInfo.textContent = 'ROUND ' + round + ' OF ' + ROUNDS_PER_SESSION;
+  }
+
+  function startRound() {
+    state = 'waiting';
+    stage.className = 'stage waiting';
+    stageText.textContent = 'Wait for green...';
+    stageSubtext.textContent = 'Clicking now will false-start';
+    resultEl.classList.remove('show');
+    const delay = MIN_DELAY + Math.random() * (MAX_DELAY - MIN_DELAY);
+    timeoutId = setTimeout(() => {
+      state = 'go';
+      stage.className = 'stage go';
+      stageText.textContent = 'CLICK NOW!';
+      stageSubtext.textContent = '';
+      goStartTime = performance.now();
+    }, delay);
+  }
+
+  function endSession() {
+    state = 'done';
+    const avg = Math.round(times.reduce((a,b) => a+b, 0) / times.length);
+    const best = Math.min(...times);
+    stage.className = 'stage waiting';
+    stageText.textContent = 'Session complete';
+    stageSubtext.textContent = 'Click "Play again" below to try another round';
+    roundInfo.textContent = '';
+
+    const stats = loadBest() || { bestAvg: null, sessions: 0 };
+    stats.sessions += 1;
+    if (!stats.bestAvg || avg < stats.bestAvg) stats.bestAvg = avg;
+    saveBest(stats);
+    renderBest();
+
+    document.getElementById('resultSub').textContent = 'Average: ' + avg + 'ms · Best round: ' + best + 'ms' + (falseStarts > 0 ? ' · False starts: ' + falseStarts : '');
+    document.getElementById('timesList').textContent = times.map((t,i) => 'R' + (i+1) + ': ' + t + 'ms').join('  ·  ');
+    resultEl.classList.add('show');
+  }
+
+  function handleStageClick() {
+    if (state === 'idle' || state === 'done') {
+      times = []; round = 0; falseStarts = 0;
+      round = 1;
+      updateRoundInfo();
+      startRound();
+      return;
+    }
+    if (state === 'waiting') {
+      clearTimeout(timeoutId);
+      falseStarts += 1;
+      state = 'toosoon';
+      stage.className = 'stage toosoon';
+      stageText.textContent = 'Too soon!';
+      stageSubtext.textContent = 'Click to retry this round';
+      state = 'retry';
+      return;
+    }
+    if (state === 'retry') {
+      startRound();
+      return;
+    }
+    if (state === 'go') {
+      const reactionMs = Math.round(performance.now() - goStartTime);
+      times.push(reactionMs);
+      stage.className = 'stage waiting';
+      stageText.textContent = reactionMs + 'ms';
+      stageSubtext.textContent = round < ROUNDS_PER_SESSION ? 'Click for round ' + (round+1) : 'Click to see your average';
+      state = 'roundEnd';
+      return;
+    }
+    if (state === 'roundEnd') {
+      if (round < ROUNDS_PER_SESSION) {
+        round += 1;
+        updateRoundInfo();
+        startRound();
+      } else {
+        endSession();
+      }
+      return;
+    }
+  }
+
+  stage.addEventListener('click', handleStageClick);
+  stage.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleStageClick(); }
+  });
+
+  document.getElementById('againBtn').onclick = () => {
+    times = []; round = 1; falseStarts = 0;
+    updateRoundInfo();
+    startRound();
+  };
+
+  document.getElementById('copyBtn').onclick = () => {
+    const avg = Math.round(times.reduce((a,b) => a+b, 0) / times.length);
+    const best = Math.min(...times);
+    const text = 'Reflex Check: ' + avg + 'ms average (best: ' + best + 'ms)';
+    function fallbackCopy(t) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.value = t; ta.style.position = 'fixed'; ta.style.opacity = '0';
+        document.body.appendChild(ta); ta.focus(); ta.select();
+        document.execCommand('copy'); document.body.removeChild(ta);
+      } catch (e) {}
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  };
+
+  const helpModal = document.getElementById('helpModal');
+  document.getElementById('helpBtn').onclick = () => {
+    helpModal.classList.add('show');
+    stage.setAttribute('inert', '');
+  };
+  function closeHelp() {
+    helpModal.classList.remove('show');
+    stage.removeAttribute('inert');
+  }
+  document.getElementById('closeHelp').onclick = closeHelp;
+  helpModal.onclick = (e) => { if (e.target === helpModal) closeHelp(); };
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeHelp(); });
+
+  renderBest();
+})();
+</script>
+
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
+</body>
+</html>
