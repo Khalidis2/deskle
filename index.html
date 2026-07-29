@@ -329,6 +329,19 @@
   }
   .modal p { font-size: 13px; line-height: 1.6; color: var(--paper-dim); }
   .legend { display: flex; align-items: center; gap: 10px; margin: 10px 0; font-size: 13px; }
+
+  .stats-modal { max-width: 360px; max-height: 80vh; overflow-y: auto; }
+  .stats-length-block { border-top: 1px dashed var(--slate); padding-top: 14px; margin-top: 14px; }
+  .stats-length-block:first-of-type { border-top: none; margin-top: 6px; padding-top: 0; }
+  .stats-length-title { color: var(--yellow); font-weight: 700; font-size: 13px; letter-spacing: 1px; margin-bottom: 8px; }
+  .stats-row { display: flex; gap: 14px; margin-bottom: 10px; font-size: 12px; color: var(--paper-dim); }
+  .stats-stat { text-align: center; }
+  .stats-stat .num { display: block; font-size: 20px; font-weight: 700; color: var(--paper); font-family: Georgia, serif; }
+  .dist-row { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; font-size: 11px; }
+  .dist-label { width: 12px; color: var(--paper-dim); }
+  .dist-bar-track { flex: 1; background: var(--ink-2); height: 16px; border-radius: 2px; overflow: hidden; }
+  .dist-bar-fill { background: var(--yellow); height: 100%; min-width: 2px; }
+  .dist-count { width: 20px; text-align: right; color: var(--paper-dim); }
   .legend .swatch { width: 22px; height: 22px; flex-shrink: 0; }
   .modal-close {
     margin-top: 10px;
@@ -382,6 +395,7 @@
   <button class="icon-btn back-btn hidden" id="backBtn" aria-label="Back to break length picker" title="Back">←</button>
 
   <div class="topbar">
+    <button class="icon-btn" id="statsBtn" aria-label="View your stats">📊</button>
     <button class="icon-btn" id="cbBtn" aria-label="Toggle colorblind-friendly colors" aria-pressed="false" title="Colorblind-friendly mode">◐</button>
     <button class="icon-btn" id="helpBtn" aria-label="How to play">?</button>
   </div>
@@ -395,6 +409,15 @@
       <div class="legend"><div class="swatch" style="background:var(--slate)"></div> Not in the word</div>
       <p style="margin-top:14px;">Turn on Hard mode on the start screen if you want every revealed hint to be required in later guesses.</p>
       <button class="modal-close" id="closeHelp">Got it</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="statsModal">
+    <div class="modal stats-modal">
+      <h3>Your stats</h3>
+      <p style="font-size:12px;">Daily puzzle only — practice rounds aren't tracked.</p>
+      <div id="statsBody"></div>
+      <button class="modal-close" id="closeStats">Got it</button>
     </div>
   </div>
 
@@ -468,6 +491,53 @@
   let knownCorrect = [];
   let knownPresent = new Set();
   const keyState = {};
+
+  const STATS_KEY = 'deskle_stats_v1';
+
+  function defaultLengthStats() {
+    return { played: 0, won: 0, currentStreak: 0, maxStreak: 0, distribution: [0,0,0,0,0,0], lastCompletedDay: null };
+  }
+
+  function loadStats() {
+    try {
+      const raw = localStorage.getItem(STATS_KEY);
+      if (!raw) return { daily: { 3: defaultLengthStats(), 4: defaultLengthStats(), 5: defaultLengthStats() } };
+      const parsed = JSON.parse(raw);
+      // defensive: fill in any missing lengths/fields from older versions
+      parsed.daily = parsed.daily || {};
+      [3,4,5].forEach(len => { if (!parsed.daily[len]) parsed.daily[len] = defaultLengthStats(); });
+      return parsed;
+    } catch (e) {
+      return { daily: { 3: defaultLengthStats(), 4: defaultLengthStats(), 5: defaultLengthStats() } };
+    }
+  }
+
+  function saveStats(stats) {
+    try {
+      localStorage.setItem(STATS_KEY, JSON.stringify(stats));
+    } catch (e) {
+      // storage unavailable (private browsing, quota, etc.) -- fail silently, stats just won't persist
+    }
+  }
+
+  function recordDailyResult(len, won, rowsUsed) {
+    const stats = loadStats();
+    const s = stats.daily[len];
+    const today = absoluteDayNumber();
+    if (s.lastCompletedDay === today) return stats; // already recorded today's result for this length, don't double count
+    s.played += 1;
+    if (won) {
+      s.won += 1;
+      s.distribution[rowsUsed] += 1;
+      s.currentStreak = (s.lastCompletedDay === today - 1) ? s.currentStreak + 1 : 1;
+      s.maxStreak = Math.max(s.maxStreak, s.currentStreak);
+    } else {
+      s.currentStreak = 0;
+    }
+    s.lastCompletedDay = today;
+    saveStats(stats);
+    return stats;
+  }
 
   const boardEl = document.getElementById('board');
   const msgEl = document.getElementById('msg');
@@ -583,7 +653,7 @@
 
   function handleKey(key) {
     if (finished || animating) return;
-    if (helpModal.classList.contains('show')) return;
+    if (helpModal.classList.contains('show') || statsModal.classList.contains('show')) return;
     if (key === 'BACK') {
       if (currentCol > 0) {
         currentCol--;
@@ -715,6 +785,7 @@
     finished = true;
     clearInterval(timerInterval);
     resultEl.classList.add('show');
+    if (!practiceMode) recordDailyResult(COLS, won, rowsUsed);
     document.getElementById('resultTitle').textContent = won ? 'Clocked out early' : 'Overtime';
     document.getElementById('resultSub').textContent = won
       ? `Got it in ${rowsUsed+1} of ${ROWS}. The word was ${ANSWER}.`
@@ -782,8 +853,8 @@
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { closeHelp(); return; }
-    if (helpModal.classList.contains('show')) return;
+    if (e.key === 'Escape') { closeHelp(); closeStats(); return; }
+    if (helpModal.classList.contains('show') || statsModal.classList.contains('show')) return;
     if (finished || gameWrap.classList.contains('hidden')) return;
     if (e.key === 'Enter') handleKey('ENTER');
     else if (e.key === 'Backspace') handleKey('BACK');
@@ -798,6 +869,70 @@
   }
 
   const helpModal = document.getElementById('helpModal');
+  const statsModal = document.getElementById('statsModal');
+
+  function renderStats() {
+    const stats = loadStats();
+    const body = document.getElementById('statsBody');
+    body.innerHTML = '';
+    [3,4,5].forEach(len => {
+      const s = stats.daily[len];
+      const winPct = s.played > 0 ? Math.round((s.won / s.played) * 100) : 0;
+      const maxDist = Math.max(1, ...s.distribution);
+
+      const block = document.createElement('div');
+      block.className = 'stats-length-block';
+
+      const title = document.createElement('div');
+      title.className = 'stats-length-title';
+      title.textContent = len + '-LETTER';
+      block.appendChild(title);
+
+      const row = document.createElement('div');
+      row.className = 'stats-row';
+      const statDefs = [
+        ['Played', s.played],
+        ['Win %', winPct],
+        ['Streak', s.currentStreak],
+        ['Max', s.maxStreak]
+      ];
+      statDefs.forEach(([label, val]) => {
+        const stat = document.createElement('div');
+        stat.className = 'stats-stat';
+        stat.innerHTML = `<span class="num">${val}</span>${label}`;
+        row.appendChild(stat);
+      });
+      block.appendChild(row);
+
+      for (let i = 0; i < 6; i++) {
+        const distRow = document.createElement('div');
+        distRow.className = 'dist-row';
+        const pct = Math.round((s.distribution[i] / maxDist) * 100);
+        distRow.innerHTML = `<span class="dist-label">${i+1}</span><div class="dist-bar-track"><div class="dist-bar-fill" style="width:${s.distribution[i] > 0 ? Math.max(pct,8) : 0}%"></div></div><span class="dist-count">${s.distribution[i]}</span>`;
+        block.appendChild(distRow);
+      }
+
+      body.appendChild(block);
+    });
+  }
+
+  function openStats() {
+    renderStats();
+    statsModal.classList.add('show');
+    picker.setAttribute('inert', '');
+    gameWrap.setAttribute('inert', '');
+    backBtn.setAttribute('inert', '');
+  }
+  function closeStats() {
+    statsModal.classList.remove('show');
+    picker.removeAttribute('inert');
+    gameWrap.removeAttribute('inert');
+    backBtn.removeAttribute('inert');
+  }
+  document.getElementById('statsBtn').onclick = openStats;
+  document.getElementById('closeStats').onclick = closeStats;
+  statsModal.onclick = (e) => { if (e.target === statsModal) closeStats(); };
+
   function openHelp() {
     helpModal.classList.add('show');
     picker.setAttribute('inert', '');
