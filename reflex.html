@@ -62,6 +62,7 @@
     transition: background 0.15s ease;
     background: var(--ink-2); border: 2px solid var(--slate);
   }
+  .stage.idle { background: var(--ink-2); border-color: var(--slate); }
   .stage.waiting { background: var(--ink-2); border-color: var(--red); }
   .stage.go { background: var(--green); border-color: var(--green); }
   .stage.toosoon { background: var(--red); border-color: var(--red); }
@@ -153,7 +154,7 @@
   <h1>Reflex Check</h1>
   <div class="tagline">how fast can you react? one round takes a few seconds.</div>
 
-  <div class="stage waiting" id="stage" tabindex="0" role="button" aria-label="Click to start reaction test">
+  <div class="stage idle" id="stage" tabindex="0" role="button" aria-label="Click to start reaction test">
     <div class="big" id="stageText">Click to start</div>
     <div class="small" id="stageSubtext">5 rounds, then your average</div>
   </div>
@@ -248,7 +249,7 @@
     state = 'done';
     const avg = Math.round(times.reduce((a,b) => a+b, 0) / times.length);
     const best = Math.min(...times);
-    stage.className = 'stage waiting';
+    stage.className = 'stage idle';
     stageText.textContent = 'Session complete';
     stageSubtext.textContent = 'Click "Play again" below to try another round';
     roundInfo.textContent = '';
@@ -289,7 +290,7 @@
     if (state === 'go') {
       const reactionMs = Math.round(performance.now() - goStartTime);
       times.push(reactionMs);
-      stage.className = 'stage waiting';
+      stage.className = 'stage idle';
       stageText.textContent = reactionMs + 'ms';
       stageSubtext.textContent = round < ROUNDS_PER_SESSION ? 'Click for round ' + (round+1) : 'Click to see your average';
       state = 'roundEnd';
