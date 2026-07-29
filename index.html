@@ -983,5 +983,10 @@
        to allow Google's ad domains (script-src, frame-src, connect-src, img-src) or ads will
        silently fail to load. -->
 
+  <script>
+    window.va = window.va || function () { (window.vaq = window.vaq || []).push(arguments); };
+  </script>
+  <script defer src="/_vercel/insights/script.js"></script>
+
 </body>
 </html>
