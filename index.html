@@ -344,7 +344,7 @@
   <div class="tagline">one word. five minutes. back to the inbox.</div>
   <div class="tagline" id="puzzleNum" style="margin-top:-14px; font-size:11px; letter-spacing:2px;"></div>
 
-  <div class="picker" id="picker">
+  <div class="picker" id="picker" role="main">
     <p>Pick your break length:</p>
     <div class="picker-opts">
       <button class="picker-btn" data-len="3"><span class="num">3</span><span class="lab">Quick</span></button>
@@ -353,13 +353,13 @@
     </div>
   </div>
 
-  <div id="gameWrap" class="hidden">
+  <div id="gameWrap" class="hidden" role="main">
     <div class="clock" id="clockLine">TIME ON BREAK — 00:00</div>
     <div class="msg" id="msg" aria-live="polite" role="status"></div>
     <div class="board" id="board"></div>
     <div class="keyboard" id="keyboard"></div>
 
-    <div class="result" id="result">
+    <div class="result" id="result" aria-live="polite" role="status">
       <h2 id="resultTitle">Back to work</h2>
       <p id="resultSub"></p>
       <div class="grid-share" id="shareGrid"></div>
@@ -482,6 +482,7 @@
         const back = document.createElement('button');
         back.className = 'key wide';
         back.textContent = '⌫';
+        back.setAttribute('aria-label', 'Backspace');
         back.onclick = () => handleKey('BACK');
         krow.appendChild(back);
       }
