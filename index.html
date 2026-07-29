@@ -154,6 +154,13 @@
     color: var(--yellow);
     background: rgba(217, 164, 65, 0.1);
   }
+  .shortcut-hint {
+    display: none;
+    margin-top: 14px;
+    font-size: 11px;
+    color: var(--paper-dim);
+    letter-spacing: 1px;
+  }
   .picker-btn {
     background: var(--ink-2);
     border: 2px solid var(--slate);
@@ -365,6 +372,19 @@
   }
   .row.shake { animation: shake 0.4s; }
 
+  @media (min-width: 900px) {
+    .tile { width: 64px; height: 64px; font-size: 32px; }
+    .row { gap: 10px; }
+    .board { gap: 10px; }
+    .key { max-width: 48px; font-size: 15px; padding: 15px 0; }
+    .key.wide { max-width: 78px; font-size: 12px; }
+    .keyboard { max-width: 560px; gap: 10px; }
+    .krow { gap: 8px; }
+    h1 { font-size: 52px; }
+    .tagline { font-size: 15px; }
+    .shortcut-hint { display: block; }
+  }
+
   @media (max-width: 380px) {
     .tile { width: 44px; height: 44px; font-size: 22px; }
     h1 { font-size: 34px; }
@@ -438,6 +458,7 @@
       <button class="picker-btn" data-len="5" aria-label="5 letters, classic"><span class="num">5</span><span class="lab">Classic</span></button>
     </div>
     <button class="hardmode-toggle" id="hardModeToggle" aria-pressed="false">Hard mode: off</button>
+    <p class="shortcut-hint">press 3, 4, or 5 to jump right in</p>
   </div>
 
   <div id="gameWrap" class="hidden" role="main">
@@ -855,6 +876,13 @@
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') { closeHelp(); closeStats(); return; }
     if (helpModal.classList.contains('show') || statsModal.classList.contains('show')) return;
+
+    // Desktop shortcut: 3/4/5 jump straight into that length from the picker screen
+    if (!picker.classList.contains('hidden') && ['3','4','5'].includes(e.key)) {
+      startGame(parseInt(e.key, 10));
+      return;
+    }
+
     if (finished || gameWrap.classList.contains('hidden')) return;
     if (e.key === 'Enter') handleKey('ENTER');
     else if (e.key === 'Backspace') handleKey('BACK');
