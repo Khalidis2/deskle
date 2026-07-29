@@ -657,7 +657,7 @@
   });
 
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { helpModal.classList.remove('show'); return; }
+    if (e.key === 'Escape') { closeHelp(); return; }
     if (helpModal.classList.contains('show')) return;
     if (finished || gameWrap.classList.contains('hidden')) return;
     if (e.key === 'Enter') handleKey('ENTER');
@@ -673,9 +673,19 @@
   }
 
   const helpModal = document.getElementById('helpModal');
-  document.getElementById('helpBtn').onclick = () => helpModal.classList.add('show');
-  document.getElementById('closeHelp').onclick = () => helpModal.classList.remove('show');
-  helpModal.onclick = (e) => { if (e.target === helpModal) helpModal.classList.remove('show'); };
+  function openHelp() {
+    helpModal.classList.add('show');
+    picker.setAttribute('inert', '');
+    gameWrap.setAttribute('inert', '');
+  }
+  function closeHelp() {
+    helpModal.classList.remove('show');
+    picker.removeAttribute('inert');
+    gameWrap.removeAttribute('inert');
+  }
+  document.getElementById('helpBtn').onclick = openHelp;
+  document.getElementById('closeHelp').onclick = closeHelp;
+  helpModal.onclick = (e) => { if (e.target === helpModal) closeHelp(); };
 
   document.getElementById('cbBtn').onclick = () => {
     document.body.classList.toggle('cbmode');
